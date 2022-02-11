@@ -44,24 +44,10 @@ func TestPing(t *testing.T) {
 	case 1:
 		var msg []p2p.DiscReason
 		if _ = rlp.DecodeBytes(data, &msg); len(msg) == 0 {
-			panic("invalid disconnect message")
+			panic("received invalid disconnect message")
 		}
 		panic(fmt.Errorf("received disconnect message: %v", msg[0]))
 	default:
 		panic(fmt.Errorf("invalid message code %d, expected handshake (code zero)", code))
 	}
 }
-
-// ProtoHandshake is the RLP structure of the protocol handshake.
-type ProtoHandshake struct {
-	Version    uint64
-	Name       string
-	Caps       []p2p.Cap
-	ListenPort uint64
-	ID         []byte // secp256k1 public key
-
-	// Ignore additional fields (for forward compatibility).
-	Rest []rlp.RawValue `rlp:"tail"`
-}
-
-func (h ProtoHandshake) Code() int { return 0x00 }
