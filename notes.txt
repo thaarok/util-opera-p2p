@@ -1,0 +1,7 @@
+Get go-opera enode address:
+
+opera attach ws://localhost:18546
+opera attach /var/opera/mainnet/opera.ipc
+> admin.nodeInfo.enode
+
+
