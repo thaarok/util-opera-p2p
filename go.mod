@@ -2,7 +2,11 @@ module Opera-util
 
 go 1.17
 
-require github.com/ethereum/go-ethereum v1.10.8
+require (
+	github.com/Fantom-foundation/lachesis-base v0.0.0-20210721130657-54ad3c8a18c1
+	github.com/ethereum/go-ethereum v1.10.8
+	github.com/status-im/keycard-go v0.0.0-20190424133014-d95853db0f48
+)
 
 require (
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect

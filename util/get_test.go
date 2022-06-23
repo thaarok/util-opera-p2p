@@ -41,7 +41,6 @@ func TestGet(t *testing.T) {
 		Version: 5,
 		Caps: []p2p.Cap{
 			{Name: "opera", Version: 62},
-			//{Name: "opera", Version: 63},
 		},
 		ID: pub0,
 	}
@@ -49,7 +48,7 @@ func TestGet(t *testing.T) {
 	if err != nil {
 		t.Fatalf("EncodeToBytes failed: %v", err)
 	}
-	_, err = conn.Write(uint64(ourHello.Code()), payload)
+	_, err = conn.Write(uint64(HelloMsg), payload)
 
 	err = receiveMsg(conn)
 	if err != nil {
@@ -113,6 +112,19 @@ func receiveMsg(conn *rlpx.Conn) (err error) {
 	}
 
 	return nil
+}
+
+const HelloMsg = 0x00
+
+type Hello struct {
+	Version    uint64
+	Name       string
+	Caps       []p2p.Cap
+	ListenPort uint64
+	ID         []byte // secp256k1 public key
+
+	// Ignore additional fields (for forward compatibility).
+	Rest []rlp.RawValue `rlp:"tail"`
 }
 
 const baseProtocolLength = uint64(16)

@@ -36,7 +36,7 @@ func TestPing(t *testing.T) {
 	}
 	switch code {
 	case 0:
-		var h ProtoHandshake
+		var h Hello
 		if err := rlp.DecodeBytes(data, &h); err != nil {
 			panic(err)
 		}
