@@ -40,7 +40,7 @@ func errorf(format string, args ...interface{}) *Error {
 	return &Error{fmt.Errorf(format, args...)}
 }
 
-// Hello is the RLP structure of the protocol handshake.
+// Hello is the RLP structure of the protocol handshake - identical with p2p.protoHandshake
 type Hello struct {
 	Version    uint64
 	Name       string

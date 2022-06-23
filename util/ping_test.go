@@ -12,7 +12,7 @@ import (
 )
 
 func TestPing(t *testing.T) {
-	n, err := enode.ParseV4("enode://07e7bd4a528fae2b57c4e86ce1da50f7530f156a2bfb2349deae38201343abd6b4a4cf9cec03fb611a92e24c824089caa32e6ed2288c147b814e0841202a1989@188.40.141.251:5050")
+	n, err := enode.ParseV4("enode://a3b164a1b7c562e524353d40a2a1cb7e27f979773d0ade61de67cf268860f7d8b5d24cda03bfce22184624cf912d3f58905f63832155e5f44c965658d6ef9d8b@162.55.0.250:30358")
 	if err != nil {
 		panic(err)
 	}
