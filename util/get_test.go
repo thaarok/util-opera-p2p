@@ -1,7 +1,6 @@
 package util
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
@@ -14,6 +13,7 @@ import (
 	"github.com/status-im/keycard-go/hexutils"
 	"net"
 	"testing"
+	"time"
 )
 
 func TestGet(t *testing.T) {
@@ -67,16 +67,21 @@ func TestGet(t *testing.T) {
 }
 
 func receiveMsg(conn *rlpx.Conn) (err error) {
+	err = conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+	if err != nil {
+		return fmt.Errorf("unable to SetReadDeadline: %v", err)
+	}
 	code, rawData, _, err := conn.Read()
 	if err != nil {
 		return fmt.Errorf("could not read: %v", err)
 	}
-	fmt.Printf("received code: %d hex data: %s\n", code, hexutils.BytesToHex(rawData))
+	rawData = common.CopyBytes(rawData)
+	fmt.Printf("received code: %d size: %x hex data: %s\n", code, len(rawData), hexutils.BytesToHex(rawData))
 
-	if code == 0 {
+	if code == HelloMsg {
 		helloMsg := new(Hello)
 		if err = rlp.DecodeBytes(rawData, helloMsg); err != nil {
-			return fmt.Errorf("could not rlp decode message: %v", err)
+			return fmt.Errorf("could not rlp decode Hello message: %v", err)
 		}
 
 		fmt.Printf("peer version name: %s\n", helloMsg.Name)
@@ -90,25 +95,30 @@ func receiveMsg(conn *rlpx.Conn) (err error) {
 		fmt.Printf("peer has opera protocol: %t\n", hasOpera)
 	}
 
-	if code == 1 {
-		return fmt.Errorf("disconnected!\n")
+	if code == DisconnectMsg {
+		var disc Disconnect
+		if err = rlp.DecodeBytes(rawData, &disc); err != nil {
+			return fmt.Errorf("could not rlp decode Disconnect message: %v", err)
+		}
+		return fmt.Errorf("disconnected! reason: %s\n", disc.Reason.String())
 	}
 
 	if code == HandshakeMsg {
-		var data handshakeData
-		s := rlp.NewStream(bytes.NewReader(rawData), uint64(len(rawData)))
-		if err = s.Decode(&data); err != nil {
-			//return fmt.Errorf("could not rlp decode message: %v", err)
+		var data handshakeData // expected len: 0x24
+		if err = rlp.DecodeBytes(rawData[2:], &data); err != nil {
+			return fmt.Errorf("could not rlp decode handshakeData: %v", err)
 		}
 		fmt.Printf("NetworkID: %X\n", data.NetworkID)
+		fmt.Printf("Genesis: %s\n", data.Genesis.String())
 	}
 
 	if code == ProgressMsg {
-		var progress PeerProgress
-		if err = rlp.DecodeBytes(rawData, &progress); err != nil {
-			return fmt.Errorf("could not rlp decode message: %v", err)
+		var progress PeerProgress // expected size: 0x2A
+		if err = rlp.DecodeBytes(rawData[2:], &progress); err != nil {
+			return fmt.Errorf("could not rlp decode ProgressMsg: %v", err)
 		}
-		fmt.Printf("Progress: %d\n", progress.LastBlockIdx)
+		fmt.Printf("Progress - Last Block: %d\n", progress.LastBlockIdx)
+		fmt.Printf("Progress - Epoch: %d\n", progress.Epoch)
 	}
 
 	return nil
@@ -125,6 +135,13 @@ type Hello struct {
 
 	// Ignore additional fields (for forward compatibility).
 	Rest []rlp.RawValue `rlp:"tail"`
+}
+
+const DisconnectMsg = 0x01
+
+// Disconnect is the RLP structure for a disconnect message.
+type Disconnect struct {
+	Reason p2p.DiscReason
 }
 
 const baseProtocolLength = uint64(16)
