@@ -13,7 +13,6 @@ import (
 	"github.com/status-im/keycard-go/hexutils"
 	"net"
 	"testing"
-	"time"
 )
 
 func TestGet(t *testing.T) {
@@ -67,10 +66,6 @@ func TestGet(t *testing.T) {
 }
 
 func receiveMsg(conn *rlpx.Conn) (err error) {
-	err = conn.SetReadDeadline(time.Now().Add(30 * time.Second))
-	if err != nil {
-		return fmt.Errorf("unable to SetReadDeadline: %v", err)
-	}
 	code, rawData, _, err := conn.Read()
 	if err != nil {
 		return fmt.Errorf("could not read: %v", err)
